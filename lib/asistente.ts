@@ -127,9 +127,12 @@ async function ejecutarHerramienta(nombre: string, args: Record<string, string>)
 }
 
 export async function llamarModelo(mensajes: MensajeAPI[], extra: Record<string, unknown> = { tools: HERRAMIENTAS }) {
-  const key = process.env.OPENROUTER_API_KEY;
-  if (!key) throw new Error("Falta configurar OPENROUTER_API_KEY.");
-  const res = await fetch(`${process.env.OPENROUTER_BASE_URL || "https://openrouter.ai/api/v1"}/chat/completions`, {
+  const key = process.env.OPENROUTER_API_KEY || process.env.NVIDIA_API_KEY;
+  if (!key) throw new Error("Falta configurar OPENROUTER_API_KEY (o NVIDIA_API_KEY).");
+  const base =
+    process.env.OPENROUTER_BASE_URL ||
+    (process.env.NVIDIA_API_KEY && !process.env.OPENROUTER_API_KEY ? "https://integrate.api.nvidia.com/v1" : "https://openrouter.ai/api/v1");
+  const res = await fetch(`${base}/chat/completions`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${key}`,
@@ -138,7 +141,7 @@ export async function llamarModelo(mensajes: MensajeAPI[], extra: Record<string,
       "X-Title": NEGOCIO.nombre,
     },
     body: JSON.stringify({
-      model: process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini",
+      model: process.env.OPENROUTER_MODEL || process.env.AI_MODEL || (process.env.NVIDIA_API_KEY && !process.env.OPENROUTER_API_KEY ? "nvidia/llama-3.3-nemotron-super-49b-v1.5" : "openai/gpt-4o-mini"),
       messages: mensajes,
       temperature: 0.4,
       ...extra,
@@ -147,6 +150,11 @@ export async function llamarModelo(mensajes: MensajeAPI[], extra: Record<string,
   if (!res.ok) throw new Error(`OpenRouter respondió ${res.status}: ${(await res.text()).slice(0, 300)}`);
   const json = await res.json();
   return json.choices?.[0]?.message as MensajeAPI;
+}
+
+// Algunos modelos (por ejemplo Nemotron) devuelven su razonamiento entre <think></think>.
+export function limpiarRazonamiento(texto: string) {
+  return texto.replace(/<think>[\s\S]*?<\/think>/gi, "").replace(/^[\s\S]*<\/think>/i, "").trim();
 }
 
 export async function responder(historial: MensajeChat[]) {
@@ -160,7 +168,7 @@ export async function responder(historial: MensajeChat[]) {
     const msg = await llamarModelo(mensajes);
     if (!msg) throw new Error("El modelo no devolvió respuesta.");
     if (!msg.tool_calls?.length) {
-      return { respuesta: msg.content ?? "", turno: turnoReservado };
+      return { respuesta: limpiarRazonamiento(msg.content ?? ""), turno: turnoReservado };
     }
     mensajes.push({ role: "assistant", content: msg.content ?? "", tool_calls: msg.tool_calls });
     for (const call of msg.tool_calls) {

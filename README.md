@@ -35,8 +35,9 @@ Los turnos se guardan en el volumen `turnos`, así que sobreviven a reinicios si
 
 | Variable | Para qué |
 | --- | --- |
-| `OPENROUTER_API_KEY` | Obligatoria. Key de OpenRouter. |
-| `OPENROUTER_MODEL` | Opcional. Modelo con tool calling. Default `openai/gpt-4o-mini`. |
+| `OPENROUTER_API_KEY` | Key de OpenRouter (esta o `NVIDIA_API_KEY`). |
+| `NVIDIA_API_KEY` | Alternativa: key `nvapi-...` de build.nvidia.com. Usa Nemotron por defecto. |
+| `OPENROUTER_MODEL` | Opcional. Modelo con tool calling. Default `openai/gpt-4o-mini` (OpenRouter) o `nvidia/llama-3.3-nemotron-super-49b-v1.5` (NVIDIA). |
 | `PANEL_PASSWORD` | Opcional. Si está, el panel pide clave (o `/panel?clave=...`). |
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | Opcional. Guarda turnos en Redis. Sin esto se guardan en `data/turnos.json`. |
 

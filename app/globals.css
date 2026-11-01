@@ -224,3 +224,6 @@ details.card p { color: var(--ink-2); margin: 10px 0 0; }
 .btn-claro { background: #fff; color: #1f1a17; border: 1px solid #fff; }
 .btn-claro:hover { background: #f6f1ea; }
 @media (max-width: 560px) { .portada-img { height: 260px; } .portada-txt { position: static; background: #2a1a12; padding: 20px 16px 24px; } .portada-btns .btn { flex: 1 1 100%; } }
+.portada-pros { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(3, 1fr); }
+.portada-pros a { display: block; }
+@media (max-width: 560px) { .portada-pros { bottom: auto; height: 260px; } }

@@ -5,6 +5,19 @@ import { NEGOCIO, SERVICIOS, PROFESIONALES, FAQ } from "@/lib/negocio";
 export default function Home() {
   return (
     <>
+      <section className="portada">
+        <img src="/equipo.svg" alt="El equipo de Peloco: Lucía, Martín y Sofi" className="portada-img" />
+        <div className="portada-txt">
+          <h1>{NEGOCIO.nombre}</h1>
+          <p>Lucía, Martín y Sofi te esperan. Reservá en un minuto, a cualquier hora.</p>
+          <div className="portada-btns">
+            <a href="/reservar" className="btn btn-primary">📅 Agenda</a>
+            <BotonChat className="btn btn-claro" texto="💬 Consulta" mensaje="Hola, tengo una consulta" />
+            <a href="#servicios" className="btn btn-claro">💲 Ver precios</a>
+          </div>
+        </div>
+      </section>
+
       <div className="wrap">
         <nav className="nav">
           <a href="#" className="logo">

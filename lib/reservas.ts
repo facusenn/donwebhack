@@ -31,14 +31,14 @@ export async function crearTurno(datos: DatosTurno, canal: Canal): Promise<{ ok:
   const servicio = servicioPorId(datos.servicioId)!;
   const turno: Turno = {
     id: nuevoId(),
-    nombre: datos.nombre.trim(),
+    nombre: datos.nombre.trim().slice(0, 80),
     telefono: normalizarTelefono(datos.telefono),
     servicioId: servicio.id,
     profesionalId: datos.profesionalId,
     fecha: datos.fecha,
     hora: datos.hora,
     duracionMin: servicio.duracionMin,
-    notas: datos.notas?.trim() || undefined,
+    notas: datos.notas?.trim().slice(0, 500) || undefined,
     estado: "confirmado",
     canal,
     creadoEn: new Date().toISOString(),

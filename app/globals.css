@@ -204,3 +204,11 @@ details.card p { color: var(--ink-2); margin: 10px 0 0; }
 .wa-form button { width: 42px; height: 42px; border-radius: 50%; border: 0; background: #00a884; color: #fff; font-size: 1.1rem; cursor: pointer; }
 .wa-form button:disabled { opacity: .5; }
 @media (max-width: 800px) { .wa-pagina { grid-template-columns: 1fr; } .wa-tel { height: 640px; } }
+
+/* Pestañas */
+.pestanas { position: sticky; top: 0; z-index: 40; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.pestanas-in { max-width: 1080px; margin: 0 auto; padding: 0 20px; display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+.pestanas-in::-webkit-scrollbar { display: none; }
+.pestanas a { padding: 11px 14px; text-decoration: none; color: var(--ink-2); font-size: .92rem; font-weight: 600; border-bottom: 2px solid transparent; white-space: nowrap; }
+.pestanas a:hover { color: var(--ink); }
+.pestanas a.activa { color: var(--accent); border-bottom-color: var(--accent); }

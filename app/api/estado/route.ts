@@ -2,13 +2,18 @@
 // No muestra las keys, solo su prefijo.
 import { llamarModelo } from "@/lib/asistente";
 import { leerValor, guardarValor } from "@/lib/store";
+import { autorizado } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
 
 const pref = (v?: string) => (v ? `${v.trim().slice(0, 7)}… (${v.trim().length} caracteres)` : "no configurada");
 
-export async function GET() {
+export async function GET(req: Request) {
+  // Hace una llamada paga a la IA y muestra datos de configuración: solo con la clave del panel
+  if (!autorizado(req) && new URL(req.url).searchParams.get("clave") !== process.env.PANEL_PASSWORD) {
+    return Response.json({ error: "Clave incorrecta" }, { status: 401 });
+  }
   const env = process.env;
   const variables = {
     OPENROUTER_API_KEY: pref(env.OPENROUTER_API_KEY),

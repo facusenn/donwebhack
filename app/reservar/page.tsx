@@ -93,14 +93,6 @@ export default function Reservar() {
 
   return (
     <div className="wrap reservar">
-      <nav className="nav">
-        <a href="/" className="logo">
-          {NEGOCIO.nombre}
-        </a>
-        <a href="/" className="meta">
-          ← Volver
-        </a>
-      </nav>
       <h1>Reservá tu turno</h1>
       <p className="sub">Elegí servicio, día y horario. Solo te mostramos los horarios que están libres de verdad.</p>
 

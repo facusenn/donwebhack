@@ -128,14 +128,6 @@ export default function Profesionales() {
 
   return (
     <div className="wrap" style={{ paddingBottom: 60 }}>
-      <nav className="nav">
-        <a href="/" className="logo">
-          {NEGOCIO.nombre}
-        </a>
-        <div className="nav-links" style={{ display: "flex" }}>
-          <a href="/panel">Panel general</a>
-        </div>
-      </nav>
       <h1>Mi agenda</h1>
       <p className="sub">Elegí quién sos para ver tus turnos y a quién atendés.</p>
 

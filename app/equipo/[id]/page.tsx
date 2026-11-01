@@ -20,14 +20,9 @@ export default async function PortfolioPro({ params }: { params: Promise<{ id: s
 
   return (
     <div className="wrap portfolio" style={{ paddingBottom: 80 }}>
-      <nav className="nav">
-        <a href="/" className="logo">
-          {NEGOCIO.nombre}
-        </a>
-        <a href="/equipo" className="meta">
-          ← Todo el equipo
-        </a>
-      </nav>
+      <p style={{ margin: "20px 0 0" }}>
+        <a href="/equipo" className="meta">← Todo el equipo</a>
+      </p>
 
       <header className="pf-head">
         <div className="avatar grande">{pro.nombre[0]}</div>

@@ -28,13 +28,14 @@ export default function WhatsAppDemo() {
     setEscribiendo(true);
     try {
       const body = new URLSearchParams({ From: `whatsapp:${telefono}`, Body: contenido, ProfileName: nombre });
-      const res = await fetch("/api/whatsapp", { method: "POST", body });
+      const res = await fetch("/api/whatsapp?sim", { method: "POST", body });
       const xml = await res.text();
+      if (!res.ok) throw new Error(`El servidor respondió ${res.status}: ${xml.slice(0, 200)}`);
       const doc = new DOMParser().parseFromString(xml, "text/xml");
       const respuesta = doc.querySelector("Message")?.textContent ?? "(sin respuesta)";
       setMsgs((m) => [...m, { de: "bot", texto: respuesta, hora: ahora() }]);
-    } catch {
-      setMsgs((m) => [...m, { de: "bot", texto: "No se pudo enviar. Probá de nuevo.", hora: ahora() }]);
+    } catch (e) {
+      setMsgs((m) => [...m, { de: "bot", texto: `No se pudo enviar. ${e instanceof Error ? e.message : ""}`, hora: ahora() }]);
     } finally {
       setEscribiendo(false);
     }
@@ -62,7 +63,7 @@ export default function WhatsAppDemo() {
         <div className="hero-cta">
           <button className="btn btn-ghost btn-sm" onClick={() => {
               setMsgs([]);
-              fetch("/api/whatsapp", { method: "POST", body: new URLSearchParams({ From: `whatsapp:${telefono}`, Body: "reiniciar" }) });
+              fetch("/api/whatsapp?sim", { method: "POST", body: new URLSearchParams({ From: `whatsapp:${telefono}`, Body: "reiniciar" }) });
             }}>
             Nueva conversación
           </button>

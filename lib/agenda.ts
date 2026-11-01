@@ -104,16 +104,8 @@ export function validarReserva(turnos: Turno[], fecha: string, hora: string, ser
   return null;
 }
 
-// "de 10 a 15, 16, 17.30": agrupa horarios seguidos (cada 30 min) en rangos.
+// "13, 13.30, 14, 15": horarios de inicio separados por comas, en formato corto.
 export function resumirHorarios(horarios: string[]): string {
   const fmt = (h: string) => (h.endsWith(":00") ? String(Number(h.slice(0, 2))) : `${Number(h.slice(0, 2))}.${h.slice(3)}`);
-  const grupos: string[][] = [];
-  for (const h of [...horarios].sort()) {
-    const g = grupos[grupos.length - 1];
-    if (g && aMin(h) - aMin(g[g.length - 1]) === PASO_MIN) g.push(h);
-    else grupos.push([h]);
-  }
-  return grupos
-    .flatMap((g) => (g.length >= 3 ? [`de ${fmt(g[0])} a ${fmt(g[g.length - 1])}`] : g.map(fmt)))
-    .join(", ");
+  return [...horarios].sort().map(fmt).join(", ");
 }

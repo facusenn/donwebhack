@@ -18,6 +18,7 @@ type Conversacion = { mensajes: MensajeChat[]; actualizado: number };
 const VENCE_MS = 6 * 60 * 60 * 1000; // la charla se reinicia tras 6 h sin mensajes
 
 export async function POST(req: Request) {
+  const simulador = new URL(req.url).searchParams.has("sim");
   const form = await req.formData();
   const de = String(form.get("From") ?? ""); // "whatsapp:+5491155551234"
   const texto = String(form.get("Body") ?? "").trim();
@@ -44,7 +45,8 @@ export async function POST(req: Request) {
     return twiml(respuesta || "¿Me repetís, por favor?");
   } catch (e) {
     console.error("WhatsApp:", e);
-    return twiml(`Uy, tuve un problema para responder. Probá de nuevo en un ratito o llamanos al ${NEGOCIO.telefono}.`);
+    const detalle = simulador ? `\n\n[detalle técnico: ${e instanceof Error ? e.message : String(e)}]` : "";
+    return twiml(`Uy, tuve un problema para responder. Probá de nuevo en un ratito o llamanos al ${NEGOCIO.telefono}.${detalle}`);
   }
 }
 

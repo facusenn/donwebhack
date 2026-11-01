@@ -135,7 +135,7 @@ async function ejecutarHerramienta(
     return {
       resultado: {
         ...d,
-        // Horarios de inicio ya agrupados, para escribirlos tal cual: "de 10 a 15, 16, 17.30"
+        // Horarios de inicio listos para escribir tal cual: "13, 14, 15"
         resumen: d.opciones.map((o) => ({ profesional: o.profesional, horarios: o.horarios.length ? resumirHorarios(o.horarios) : "sin lugar" })),
       },
     };
@@ -213,7 +213,7 @@ function extraWhatsApp(telefono?: string) {
 
 ESTÁS RESPONDIENDO POR WHATSAPP:
 - No podés mostrar el calendario: ofrecé horarios por texto usando consultar_disponibilidad.
-- Para pasar horarios usá el campo "resumen" tal cual viene, por profesional. Ejemplo: "Con Lucía tengo de 10 a 15, 16, 17.30 disponibles. ¿Qué horario te queda bien?". No enumeres uno por uno los horarios que ya están agrupados en un rango.
+- Para pasar horarios usá el campo "resumen" tal cual viene, por profesional. Ejemplo: "Con Lucía tengo 13, 14, 15, 17.30 disponibles. ¿Qué horario te queda bien?". Separá los horarios solo con comas, nunca uses rangos tipo "de 10 a 15".
 - El celular del cliente es ${telefono ?? "el de este chat"}: usalo en reservar_turno y no se lo pidas.
 - Escribí texto plano, sin markdown ni asteriscos dobles. Mensajes cortos.`;
 }

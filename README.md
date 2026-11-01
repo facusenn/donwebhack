@@ -18,6 +18,17 @@ Proyecto para la hackathon de DonWeb. Problema: un negocio local pierde ventas p
 - **Calendario dentro del chat:** cuando la IA identifica el servicio, muestra el calendario de horarios libres en la conversación.
 - **Vista por profesional** (`/profesionales`): cada pro ve su agenda, a quién atiende y puede conectar su Google Calendar.
 
+### WhatsApp
+
+Los clientes pueden consultar y reservar por WhatsApp con el mismo asistente. Cada número tiene su conversación (se reinicia sola tras 6 horas o escribiendo "reiniciar"), no se le pide el celular, y los turnos caen en la bandeja con la etiqueta WhatsApp.
+
+Para la demo, con el sandbox gratuito de Twilio:
+1. Crear cuenta en twilio.com → Messaging → Try it out → Send a WhatsApp message.
+2. Unirse al sandbox desde el celular mandando el código `join ...` que muestra Twilio.
+3. En "Sandbox settings", "When a message comes in" = `https://TU-DOMINIO/api/whatsapp`, método POST.
+
+Para producción se usa un número de WhatsApp Business aprobado con el mismo webhook.
+
 ### Google Calendar
 
 Cada profesional conecta su calendario pegando la "Dirección secreta en formato iCal" (Google Calendar → Configuración → su calendario → Integrar el calendario). Sus eventos bloquean horarios en la agenda. A la vez, puede suscribirse a sus turnos de Peloco desde Google Calendar ("Otros calendarios" → "Desde URL") con el link que muestra la página, o agregar cada turno con un clic. No requiere credenciales de Google Cloud. También se puede configurar por variable: `GCAL_ICS_LUCIA`, `GCAL_ICS_MARTIN`, `GCAL_ICS_SOFI`.

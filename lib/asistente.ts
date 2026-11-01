@@ -108,9 +108,12 @@ const HERRAMIENTAS = [
 
 export type PedidoCalendario = { servicioId: string; profesionalId?: string };
 
+export type OpcionesCanal = { canal: "web" | "whatsapp"; telefono?: string };
+
 async function ejecutarHerramienta(
   nombre: string,
   args: Record<string, string>,
+  op: OpcionesCanal = { canal: "web" },
 ): Promise<{ resultado: unknown; turno?: Turno; calendario?: PedidoCalendario }> {
   if (nombre === "mostrar_calendario") {
     const servicio = servicioPorId(args.servicio_id);
@@ -140,7 +143,7 @@ async function ejecutarHerramienta(
         hora: args.hora,
         notas: args.notas,
       },
-      "web",
+      op.canal,
     );
     if (!r.ok) return { resultado: r };
     const t = r.turno;
@@ -197,16 +200,26 @@ export function limpiarRazonamiento(texto: string) {
   return texto.replace(/<think>[\s\S]*?<\/think>/gi, "").replace(/^[\s\S]*<\/think>/i, "").trim();
 }
 
-export async function responder(historial: MensajeChat[]) {
+function extraWhatsApp(telefono?: string) {
+  return `
+
+ESTÁS RESPONDIENDO POR WHATSAPP:
+- No podés mostrar el calendario: ofrecé horarios por texto usando consultar_disponibilidad (máximo 4 opciones).
+- El celular del cliente es ${telefono ?? "el de este chat"}: usalo en reservar_turno y no se lo pidas.
+- Escribí texto plano, sin markdown ni asteriscos dobles. Mensajes cortos.`;
+}
+
+export async function responder(historial: MensajeChat[], op: OpcionesCanal = { canal: "web" }) {
+  const herramientas = op.canal === "whatsapp" ? HERRAMIENTAS.filter((h) => h.function.name !== "mostrar_calendario") : HERRAMIENTAS;
   const mensajes: MensajeAPI[] = [
-    { role: "system", content: promptSistema() },
+    { role: "system", content: promptSistema() + (op.canal === "whatsapp" ? extraWhatsApp(op.telefono) : "") },
     ...historial.slice(-20).map((m) => ({ role: m.role, content: m.content.slice(0, 2000) })),
   ];
   let turnoReservado: Turno | undefined;
   let calendario: PedidoCalendario | undefined;
 
   for (let i = 0; i < 6; i++) {
-    const msg = await llamarModelo(mensajes);
+    const msg = await llamarModelo(mensajes, { tools: herramientas });
     if (!msg) throw new Error("El modelo no devolvió respuesta.");
     if (!msg.tool_calls?.length) {
       return { respuesta: limpiarRazonamiento(msg.content ?? ""), turno: turnoReservado, calendario };
@@ -217,7 +230,7 @@ export async function responder(historial: MensajeChat[]) {
       try {
         args = JSON.parse(call.function.arguments || "{}");
       } catch {}
-      const { resultado, turno, calendario: cal } = await ejecutarHerramienta(call.function.name, args);
+      const { resultado, turno, calendario: cal } = await ejecutarHerramienta(call.function.name, args, op);
       if (turno) turnoReservado = turno;
       if (cal) calendario = cal;
       mensajes.push({ role: "tool", tool_call_id: call.id, content: JSON.stringify(resultado) });

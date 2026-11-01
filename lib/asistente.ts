@@ -39,7 +39,8 @@ ${FAQ.map((f) => `- ${f.p} ${f.r}`).join("\n")}
 
 CÓMO RESERVAR UN TURNO:
 1. Averiguá qué servicio quiere. Cada servicio dura distinto, así que el servicio va primero.
-2. Apenas sepas el servicio, llamá a mostrar_calendario: el cliente ve un calendario con los días y horarios libres para ese servicio y elige ahí. Decile en una frase corta que elija día y hora en el calendario.
+2. Apenas sepas el servicio, llamá a mostrar_calendario EN ESE MISMO MOMENTO, sin preguntar si quiere ver horarios y sin esperar otro mensaje: el cliente ve un calendario con los días y horarios libres para ese servicio y elige ahí. Decile en una frase corta que elija día y hora en el calendario.
+   Nunca respondas "voy a chequear" o "un momento": usá la herramienta directamente y respondé con el resultado.
    Si el cliente ya nombró un día concreto, podés además usar consultar_disponibilidad y ofrecerle hasta 4 horarios por texto.
 3. Cuando elija horario, pedí nombre y celular (WhatsApp) si todavía no los tenés.
 4. Llamá a reservar_turno. Recién cuando la herramienta confirme, decile que quedó reservado con el código del turno.
@@ -218,6 +219,26 @@ ESTÁS RESPONDIENDO POR WHATSAPP:
 - Escribí texto plano, sin markdown ni asteriscos dobles. Mensajes cortos.`;
 }
 
+// Detecta el servicio que el cliente pidió en sus mensajes (respaldo si el modelo no llama a la herramienta)
+const PALABRAS_SERVICIO: [string, RegExp][] = [
+  ["balayage", /balayage|mechas|reflejos/i],
+  ["keratina", /keratina|alisad/i],
+  ["color-raiz", /ra[ií]z|retoque/i],
+  ["color-completo", /color|tintura|te[ñn]ir/i],
+  ["barba", /barba/i],
+  ["corte-nino", /ni[ñn][oa]|nene|nena|hij[oa]/i],
+  ["corte-hombre", /corte.*(hombre|var[oó]n)|(hombre|var[oó]n).*corte/i],
+  ["brushing", /brushing|planchita/i],
+  ["hidratacion", /hidrataci|ampolla|tratamiento/i],
+  ["peinado", /peinado|recogido|fiesta|casamiento|evento/i],
+  ["corte-mujer", /corte|cortar/i],
+];
+function servicioPedido(historial: MensajeChat[]): string | undefined {
+  const texto = historial.filter((m) => m.role === "user").slice(-4).map((m) => m.content).join(" ");
+  return PALABRAS_SERVICIO.find(([, re]) => re.test(texto))?.[0];
+}
+const ANUNCIA_ESPERA = /un momento|voy a (chequear|consultar|revisar|buscar|fijarme|ver)|dame un segundo|aguard|enseguida te/i;
+
 export async function responder(historial: MensajeChat[], op: OpcionesCanal = { canal: "web" }) {
   const herramientas = op.canal === "whatsapp" ? HERRAMIENTAS.filter((h) => h.function.name !== "mostrar_calendario") : HERRAMIENTAS;
   const mensajes: MensajeAPI[] = [
@@ -231,7 +252,20 @@ export async function responder(historial: MensajeChat[], op: OpcionesCanal = { 
     const msg = await llamarModelo(mensajes, { tools: herramientas });
     if (!msg) throw new Error("El modelo no devolvió respuesta.");
     if (!msg.tool_calls?.length) {
-      return { respuesta: limpiarRazonamiento(msg.content ?? ""), turno: turnoReservado, calendario };
+      const texto = limpiarRazonamiento(msg.content ?? "");
+      // Si el modelo anuncia que va a buscar horarios pero no usó la herramienta, no lo dejamos colgado
+      if (!calendario && !turnoReservado && ANUNCIA_ESPERA.test(texto)) {
+        const servicioId = servicioPedido(historial);
+        if (op.canal !== "whatsapp" && servicioId) {
+          return { respuesta: "¡Dale! Elegí día y hora en el calendario 👇", turno: turnoReservado, calendario: { servicioId } };
+        }
+        if (i < 4) {
+          mensajes.push({ role: "assistant", content: msg.content ?? "" });
+          mensajes.push({ role: "user", content: "(Sistema: no esperes otro mensaje del cliente. Usá ahora la herramienta que corresponda y respondé con el resultado.)" });
+          continue;
+        }
+      }
+      return { respuesta: texto, turno: turnoReservado, calendario };
     }
     mensajes.push({ role: "assistant", content: msg.content ?? "", tool_calls: msg.tool_calls });
     for (const call of msg.tool_calls) {

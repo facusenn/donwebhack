@@ -20,8 +20,11 @@ export default function Reservar() {
 
   useEffect(() => {
     try {
-      const s = new URLSearchParams(location.search).get("servicio");
-      if (s && servicioPorId(s)) setServicioId(s);
+      const qs = new URLSearchParams(location.search);
+      const s = qs.get("servicio");
+      const p = qs.get("pro");
+      if (p && profesionalPorId(p)) setProId(p);
+      if (s && servicioPorId(s) && (!p || !profesionalPorId(p) || profesionalPorId(p)!.servicios.includes(s))) setServicioId(s);
     } catch {}
   }, []);
 
@@ -47,6 +50,9 @@ export default function Reservar() {
 
   const servicio = servicioPorId(servicioId);
   const pros = PROFESIONALES.filter((p) => !servicioId || p.servicios.includes(servicioId));
+  const elegido = profesionalPorId(proId);
+  // Si vino desde el portfolio de alguien, mostramos solo los servicios que hace esa persona.
+  const servicios = elegido ? SERVICIOS.filter((s) => elegido.servicios.includes(s.id)) : SERVICIOS;
 
   if (listo && slot && servicio) {
     const gcal = linkGoogleCalendar({
@@ -98,12 +104,23 @@ export default function Reservar() {
       <h1>Reservá tu turno</h1>
       <p className="sub">Elegí servicio, día y horario. Solo te mostramos los horarios que están libres de verdad.</p>
 
+      {elegido && (
+        <div className="card aviso-pro">
+          <span>
+            Agendando con <strong>{elegido.nombre}</strong> · <a href={`/equipo/${elegido.id}`}>ver sus trabajos</a>
+          </span>
+          <button className="btn btn-ghost btn-sm" onClick={() => setProId("")}>
+            Ver todo el equipo
+          </button>
+        </div>
+      )}
+
       <section className="paso">
         <h2>
           <span className="num">1</span> ¿Qué te querés hacer?
         </h2>
         <div className="segmentos">
-          {SERVICIOS.map((s) => (
+          {servicios.map((s) => (
             <button
               key={s.id}
               className={`chip grande ${servicioId === s.id ? "activo" : ""}`}
@@ -126,6 +143,9 @@ export default function Reservar() {
           <h2>
             <span className="num">2</span> ¿Con quién?
           </h2>
+          <p className="meta" style={{ marginBottom: 10 }}>
+            <a href="/equipo">Ver los trabajos de cada profesional</a>
+          </p>
           <div className="segmentos">
             <button className={`chip grande ${proId === "" ? "activo" : ""}`} onClick={() => setProId("")}>
               Me da igual

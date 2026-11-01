@@ -1,7 +1,7 @@
 // Lee un mensaje que entró por WhatsApp o una nota de llamada y lo convierte en un turno estructurado.
 import { NEGOCIO, SERVICIOS, PROFESIONALES } from "./negocio";
 import { ahoraAR, proximosDiasAbiertos } from "./agenda";
-import { llamarModelo } from "./asistente";
+import { llamarModelo, limpiarRazonamiento } from "./asistente";
 
 export type Interpretacion = {
   nombre: string;
@@ -33,14 +33,18 @@ Respondé SOLO con un JSON con estas claves:
 - "faltantes": lista en castellano de lo que falta para confirmar (ej. "horario", "celular").
 - "respuestaSugerida": un mensaje corto y cálido en español rioplatense para contestarle al cliente por WhatsApp (confirmando o pidiendo lo que falta).`;
 
-  const msg = await llamarModelo(
-    [
-      { role: "system", content: sistema },
-      { role: "user", content: texto.slice(0, 4000) },
-    ],
-    { response_format: { type: "json_object" }, temperature: 0.1 },
-  );
-  const crudo = (msg?.content ?? "").replace(/^```(json)?|```$/g, "").trim();
+  const mensajes = [
+    { role: "system" as const, content: sistema },
+    { role: "user" as const, content: texto.slice(0, 4000) },
+  ];
+  let msg;
+  try {
+    msg = await llamarModelo(mensajes, { response_format: { type: "json_object" }, temperature: 0.1 });
+  } catch {
+    // Algunos proveedores no aceptan response_format: reintentar sin eso.
+    msg = await llamarModelo(mensajes, { temperature: 0.1 });
+  }
+  const crudo = limpiarRazonamiento(msg?.content ?? "").replace(/^```(json)?|```$/g, "").trim();
   const inicio = crudo.indexOf("{");
   const fin = crudo.lastIndexOf("}");
   const j = JSON.parse(crudo.slice(inicio, fin + 1));

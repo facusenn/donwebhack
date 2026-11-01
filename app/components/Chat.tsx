@@ -58,7 +58,11 @@ export default function Chat({ nombreNegocio }: { nombreNegocio: string }) {
       console.error(e);
       setMsgs((m) => [
         ...m,
-        { role: "assistant", content: "Uy, tuve un problema para responder. Probá de nuevo en un ratito.", error: true },
+        {
+          role: "assistant",
+          content: `Uy, tuve un problema para responder. Probá de nuevo en un ratito.\n\n(Detalle técnico: ${e instanceof Error ? e.message : String(e)})`,
+          error: true,
+        },
       ]);
     } finally {
       setCargando(false);

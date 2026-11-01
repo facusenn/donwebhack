@@ -1,4 +1,4 @@
-# Studio Bruma · Peluquería con asistente IA
+# Peloco · Peluquería con asistente IA
 
 Proyecto para la hackathon de DonWeb. Problema: un negocio local pierde ventas porque atiende consultas y turnos a mano por WhatsApp y teléfono.
 

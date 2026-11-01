@@ -16,12 +16,12 @@ export type Profesional = {
 };
 
 export const NEGOCIO = {
-  nombre: "Studio Bruma",
+  nombre: "Peloco",
   rubro: "Peluquería",
   slogan: "Tu pelo, sin vueltas. Reservá en un minuto, a cualquier hora.",
   direccion: "Av. Corrientes 1234, CABA",
   telefono: "+54 9 11 5555-1234",
-  instagram: "@studiobruma",
+  instagram: "@peloco.peluqueria",
   horarioTexto: "Martes a sábado de 10 a 20 hs. Domingo y lunes cerrado.",
   // 0 = domingo ... 6 = sábado
   diasAbiertos: [2, 3, 4, 5, 6],

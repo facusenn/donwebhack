@@ -1,8 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Calendario, { fechaLarga } from "./Calendario";
+import { servicioPorId } from "@/lib/negocio";
 
-type Msg = { role: "user" | "assistant"; content: string; error?: boolean; turnoId?: string };
+type Msg = {
+  role: "user" | "assistant";
+  content: string;
+  error?: boolean;
+  turnoId?: string;
+  calendario?: { servicioId: string; profesionalId?: string };
+  calendarioUsado?: boolean;
+  mostrar?: string;
+};
 
 const SUGERENCIAS = ["Quiero un turno para corte", "¿Cuánto sale un balayage?", "¿Qué días atienden?", "¿Tienen lugar mañana?"];
 
@@ -38,10 +48,10 @@ export default function Chat({ nombreNegocio }: { nombreNegocio: string }) {
     if (abierto) inputRef.current?.focus();
   }, [abierto]);
 
-  async function enviar(contenido: string) {
+  async function enviar(contenido: string, mostrar?: string) {
     const t = contenido.trim();
     if (!t || cargando) return;
-    const nuevos: Msg[] = [...msgs, { role: "user", content: t }];
+    const nuevos: Msg[] = [...msgs, { role: "user", content: t, mostrar }];
     setMsgs(nuevos);
     setTexto("");
     setCargando(true);
@@ -53,7 +63,10 @@ export default function Chat({ nombreNegocio }: { nombreNegocio: string }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detalle || data.error);
-      setMsgs((m) => [...m, { role: "assistant", content: data.respuesta, turnoId: data.turno?.id }]);
+      setMsgs((m) => [
+        ...m,
+        { role: "assistant", content: data.respuesta, turnoId: data.turno?.id, calendario: data.calendario ?? undefined },
+      ]);
     } catch (e) {
       console.error(e);
       setMsgs((m) => [
@@ -91,8 +104,26 @@ export default function Chat({ nombreNegocio }: { nombreNegocio: string }) {
       <div className="chat-body">
         {msgs.map((m, i) => (
           <div key={i} style={{ display: "contents" }}>
-            <div className={`burbuja ${m.role === "user" ? "yo" : "bot"} ${m.error ? "error" : ""}`}>{m.content}</div>
+            <div className={`burbuja ${m.role === "user" ? "yo" : "bot"} ${m.error ? "error" : ""}`}>{m.mostrar ?? m.content}</div>
             {m.turnoId && <div className="reservado">✓ Turno {m.turnoId} reservado</div>}
+            {m.calendario && !m.calendarioUsado && i === msgs.length - 1 && (
+              <div className="burbuja bot cal-en-chat">
+                <div className="meta">
+                  {servicioPorId(m.calendario.servicioId)?.nombre} · {servicioPorId(m.calendario.servicioId)?.duracionMin} min
+                </div>
+                <Calendario
+                  servicioId={m.calendario.servicioId}
+                  profesionalId={m.calendario.profesionalId ?? ""}
+                  semanas={3}
+                  compacto
+                  onElegir={(fecha, slot) => {
+                    if (!slot) return;
+                    const texto = `Elijo el ${fechaLarga(fecha)} a las ${slot.hora} con ${slot.profesional}`;
+                    enviar(`${texto} (fecha ${fecha}, hora ${slot.hora}, profesional_id ${slot.profesionalId}).`, `${texto} 📅`);
+                  }}
+                />
+              </div>
+            )}
           </div>
         ))}
         {cargando && <div className="escribiendo">Escribiendo…</div>}

@@ -15,6 +15,7 @@ export default function Home() {
             <a href="#equipo">Equipo</a>
             <a href="#faq">Preguntas</a>
             <a href="#contacto">Contacto</a>
+            <a href="/reservar">Reservar</a>
           </div>
         </nav>
 
@@ -24,10 +25,10 @@ export default function Home() {
             <h1>Reservá tu turno sin esperar respuesta.</h1>
             <p>{NEGOCIO.slogan} Nuestro asistente te pasa precios, te muestra horarios libres reales y te deja el turno confirmado.</p>
             <div className="hero-cta">
-              <BotonChat texto="Reservar turno ahora" mensaje="Hola, quiero reservar un turno" />
-              <a href="#servicios" className="btn btn-ghost">
-                Ver precios
+              <a href="/reservar" className="btn btn-primary">
+                Elegir día y hora
               </a>
+              <BotonChat className="btn btn-ghost" texto="💬 Consultar al asistente" mensaje="Hola, quiero reservar un turno" />
             </div>
           </div>
           <div className="hero-card" aria-hidden>
@@ -52,7 +53,9 @@ export default function Home() {
                 <p className="meta">
                   {s.descripcion} · {s.duracionMin} min
                 </p>
-                <BotonChat className="btn btn-ghost btn-sm" texto="Reservar" mensaje={`Quiero reservar un turno para ${s.nombre.toLowerCase()}`} />
+                <a className="btn btn-ghost btn-sm" href={`/reservar?servicio=${s.id}`}>
+                  Reservar
+                </a>
               </div>
             ))}
           </div>
@@ -113,7 +116,9 @@ export default function Home() {
             <span>
               © {new Date().getFullYear()} {NEGOCIO.nombre}
             </span>
-            <a href="/panel">Acceso equipo</a>
+            <span>
+              <a href="/profesionales">Profesionales</a> · <a href="/panel">Panel</a>
+            </span>
           </footer>
         </div>
       </section>

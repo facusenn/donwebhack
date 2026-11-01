@@ -12,7 +12,11 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es-AR">
+    <html lang="es-AR" suppressHydrationWarning>
+      <head>
+        {/* Aplica el tema guardado antes de pintar, para que no parpadee */}
+        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem("tema");if(t)document.documentElement.dataset.theme=t}catch(e){}` }} />
+      </head>
       <body>
         <Pestanas />
         {children}

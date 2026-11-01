@@ -16,7 +16,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #171412;
     --bg-2: #201c19;
     --card: #24201c;
@@ -27,6 +27,18 @@
     --accent-ink: #1a1310;
   }
 }
+:root[data-theme="dark"] {
+    --bg: #171412;
+    --bg-2: #201c19;
+    --card: #24201c;
+    --ink: #f3ece4;
+    --ink-2: #b4a99e;
+    --line: #3a332d;
+    --accent: #e07a52;
+    --accent-ink: #1a1310;
+  }
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
@@ -247,3 +259,5 @@ details.card p { color: var(--ink-2); margin: 10px 0 0; }
 @media (max-width: 560px) { .portada-pros { bottom: auto; height: 260px; } }
 .pestanas a.pestanas-logo { font-family: var(--serif); font-size: 1.25rem; font-weight: 700; color: var(--ink); padding-left: 0; margin-right: 8px; }
 .pestanas + .wrap { padding-top: 28px; }
+.tema-btn { margin-left: auto; align-self: center; flex: none; background: transparent; border: 1px solid var(--line); color: var(--ink); border-radius: 999px; width: 36px; height: 36px; font-size: 1rem; cursor: pointer; }
+.tema-btn:hover { background: var(--bg-2); }

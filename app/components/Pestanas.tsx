@@ -1,6 +1,7 @@
 "use client";
 
 // Única barra de navegación del sitio (reemplaza los menús que tenía cada página).
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { NEGOCIO } from "@/lib/negocio";
 
@@ -18,6 +19,19 @@ const PESTANAS = [
 
 export default function Pestanas() {
   const ruta = usePathname() ?? "/";
+  const [oscuro, setOscuro] = useState(false);
+  useEffect(() => {
+    const t = document.documentElement.dataset.theme;
+    setOscuro(t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches);
+  }, []);
+  function cambiarTema() {
+    const nuevo = oscuro ? "light" : "dark";
+    document.documentElement.dataset.theme = nuevo;
+    setOscuro(!oscuro);
+    try {
+      localStorage.setItem("tema", nuevo);
+    } catch {}
+  }
   return (
     <nav className="pestanas" aria-label="Secciones">
       <div className="pestanas-in">
@@ -32,6 +46,9 @@ export default function Pestanas() {
             </a>
           );
         })}
+        <button type="button" className="tema-btn" onClick={cambiarTema} aria-label={oscuro ? "Pasar a modo claro" : "Pasar a modo oscuro"} title={oscuro ? "Modo claro" : "Modo oscuro"}>
+          {oscuro ? "☀️" : "🌙"}
+        </button>
       </div>
     </nav>
   );

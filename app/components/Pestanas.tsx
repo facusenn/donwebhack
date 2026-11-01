@@ -13,7 +13,6 @@ const PESTANAS = [
   { href: "/#faq", texto: "Preguntas" },
   { href: "/#contacto", texto: "Contacto" },
   { href: "/whatsapp", texto: "WhatsApp" },
-  { href: "/profesionales", texto: "Profesionales" },
   { href: "/panel", texto: "Panel" },
 ];
 

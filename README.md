@@ -4,6 +4,18 @@ Proyecto para la hackathon de DonWeb. Problema: un negocio local pierde ventas p
 
 **Solución:** una web con un asistente de IA que responde consultas y reserva turnos sobre la agenda real, 24/7, y un panel donde el equipo ve **todos los turnos en una sola bandeja**, sin importar por dónde entraron (web, WhatsApp, teléfono o mostrador).
 
+## Demo en vivo
+
+| Qué | Link |
+| --- | --- |
+| Web de la peluquería (con chat IA) | https://errantes.online/ |
+| Reservar con calendario | https://errantes.online/reservar |
+| **WhatsApp simulado** (mismo webhook que Twilio) | https://errantes.online/whatsapp |
+| Vista del equipo (profesionales) | https://errantes.online/profesionales |
+| Panel con la bandeja única de turnos | https://errantes.online/panel |
+
+Para probar WhatsApp: entrá al simulador, escribí como cliente (por ejemplo *"hola, ¿tenés lugar el sábado para corte?"*), elegí un horario y después mirá el turno en el Panel con la etiqueta **WhatsApp**.
+
 ## Qué hace
 
 - **Landing** con servicios, precios, equipo, preguntas frecuentes y contacto.

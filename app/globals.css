@@ -227,3 +227,21 @@ details.card p { color: var(--ink-2); margin: 10px 0 0; }
 .portada-pros { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(3, 1fr); }
 .portada-pros a { display: block; }
 @media (max-width: 560px) { .portada-pros { bottom: auto; height: 260px; } }
+/* Portfolio de profesionales */
+.equipo a.card { text-decoration: none; color: inherit; display: block; transition: border-color .15s; }
+.equipo a.card:hover { border-color: var(--accent); }
+.pf-head { display: grid; grid-template-columns: auto 1fr; gap: 24px; align-items: start; padding: 24px 0 8px; }
+.avatar.grande { width: 96px; height: 96px; border-radius: 50%; display: grid; place-items: center; font-family: var(--serif); font-size: 2.4rem; background: var(--accent); color: var(--accent-ink); }
+.pf-bloque { margin-top: 36px; }
+.pf-bloque h2 { font-size: 1.3rem; margin-bottom: 14px; }
+.pf-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+.pf-trabajo { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.pf-foto { aspect-ratio: 4 / 3; display: flex; align-items: flex-end; padding: 12px; }
+.pf-foto span { font-family: var(--serif); font-size: 1.15rem; color: #fff; text-shadow: 0 1px 8px rgba(0,0,0,.5); }
+.pf-trabajo figcaption { padding: 12px 14px 14px; }
+.pf-link { display: inline-block; margin-top: 6px; color: var(--accent); text-decoration: none; font-weight: 600; }
+.pf-serv { text-decoration: none; color: inherit; }
+.pf-serv:hover { border-color: var(--accent); }
+.pf-cta { margin-top: 36px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.aviso-pro { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+@media (max-width: 600px) { .pf-head { grid-template-columns: 1fr; } .avatar.grande { width: 72px; height: 72px; font-size: 1.8rem; } }

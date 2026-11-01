@@ -245,3 +245,5 @@ details.card p { color: var(--ink-2); margin: 10px 0 0; }
 .portada-pros { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(3, 1fr); }
 .portada-pros a { display: block; }
 @media (max-width: 560px) { .portada-pros { bottom: auto; height: 260px; } }
+.pestanas a.pestanas-logo { font-family: var(--serif); font-size: 1.25rem; font-weight: 700; color: var(--ink); padding-left: 0; margin-right: 8px; }
+.pestanas + .wrap { padding-top: 28px; }

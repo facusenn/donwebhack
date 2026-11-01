@@ -6,14 +6,6 @@ export const metadata = { title: `El equipo | ${NEGOCIO.nombre}` };
 export default function Equipo() {
   return (
     <div className="wrap" style={{ paddingBottom: 80 }}>
-      <nav className="nav">
-        <a href="/" className="logo">
-          {NEGOCIO.nombre}
-        </a>
-        <a href="/reservar" className="meta">
-          Reservar →
-        </a>
-      </nav>
       <h1>El equipo</h1>
       <p className="sub">Mirá los trabajos de cada profesional y agendá directo con quien más te guste.</p>
       <div className="grid equipo">

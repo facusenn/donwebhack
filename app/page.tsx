@@ -24,18 +24,6 @@ export default function Home() {
       </section>
 
       <div className="wrap">
-        <nav className="nav">
-          <a href="#" className="logo">
-            {NEGOCIO.nombre}
-          </a>
-          <div className="nav-links">
-            <a href="#servicios">Servicios</a>
-            <a href="#equipo">Equipo</a>
-            <a href="#faq">Preguntas</a>
-            <a href="#contacto">Contacto</a>
-            <a href="/reservar">Reservar</a>
-          </div>
-        </nav>
 
         <header className="hero">
           <div>

@@ -22,6 +22,15 @@ cp .env.example .env.local   # completá OPENROUTER_API_KEY
 npm run dev                  # http://localhost:3000 y http://localhost:3000/panel
 ```
 
+## Correr con Docker
+
+```bash
+cp .env.example .env         # completá OPENROUTER_API_KEY
+docker compose up -d --build # http://localhost:3000
+```
+
+Los turnos se guardan en el volumen `turnos`, así que sobreviven a reinicios sin necesidad de Redis. Sirve igual en cualquier servidor con Docker (por ejemplo un Cloud Server de DonWeb).
+
 ## Variables de entorno
 
 | Variable | Para qué |

@@ -5,6 +5,24 @@ import { NEGOCIO, SERVICIOS, PROFESIONALES, FAQ } from "@/lib/negocio";
 export default function Home() {
   return (
     <>
+      <section className="portada">
+        <img src="/equipo.svg" alt="El equipo de Peloco: Lucía, Martín y Sofi" className="portada-img" />
+        <div className="portada-pros">
+          {PROFESIONALES.map((p) => (
+            <a key={p.id} href={`/equipo/${p.id}`} aria-label={`Ver el trabajo de ${p.nombre}`} title={`Ver el trabajo de ${p.nombre}`} />
+          ))}
+        </div>
+        <div className="portada-txt">
+          <h1>{NEGOCIO.nombre}</h1>
+          <p>Lucía, Martín y Sofi te esperan. Reservá en un minuto, a cualquier hora.</p>
+          <div className="portada-btns">
+            <a href="/reservar" className="btn btn-primary">📅 Agenda</a>
+            <BotonChat className="btn btn-claro" texto="💬 Consulta" mensaje="Hola, tengo una consulta" />
+            <a href="#servicios" className="btn btn-claro">💲 Ver precios</a>
+          </div>
+        </div>
+      </section>
+
       <div className="wrap">
         <nav className="nav">
           <a href="#" className="logo">
@@ -68,11 +86,11 @@ export default function Home() {
           <p className="sub">Podés elegir con quién atenderte o dejar que te asignemos al primero libre.</p>
           <div className="grid equipo">
             {PROFESIONALES.map((p) => (
-              <div className="card" key={p.id}>
+              <a className="card" key={p.id} href={`/equipo/${p.id}`} style={{ textDecoration: "none", color: "inherit" }}>
                 <div className="avatar">{p.nombre[0]}</div>
                 <h3>{p.nombre}</h3>
-                <p className="meta">{p.especialidad}</p>
-              </div>
+                <p className="meta">{p.especialidad} · Ver trabajos y agendar →</p>
+              </a>
             ))}
           </div>
         </div>

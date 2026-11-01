@@ -106,6 +106,7 @@ export default function Panel() {
           <a href="/" className="logo">
             {NEGOCIO.nombre}
           </a>
+          <div className="meta"><a href="/profesionales">Vista por profesional →</a></div>
           <div className="meta">Bandeja única de turnos: web, WhatsApp, teléfono y mostrador</div>
         </div>
         <select

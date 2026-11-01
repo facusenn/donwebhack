@@ -14,6 +14,14 @@ Proyecto para la hackathon de DonWeb. Problema: un negocio local pierde ventas p
   - Muestra horarios libres y no deja superponer turnos.
   - Botón de WhatsApp con recordatorio armado, y estados atendido / cancelado.
 
+- **Reservar con calendario** (`/reservar`): el cliente elige servicio, profesional, día y hora. Solo ve horarios donde el turno entra completo según la duración del servicio, y no puede reservar horarios ocupados.
+- **Calendario dentro del chat:** cuando la IA identifica el servicio, muestra el calendario de horarios libres en la conversación.
+- **Vista por profesional** (`/profesionales`): cada pro ve su agenda, a quién atiende y puede conectar su Google Calendar.
+
+### Google Calendar
+
+Cada profesional conecta su calendario pegando la "Dirección secreta en formato iCal" (Google Calendar → Configuración → su calendario → Integrar el calendario). Sus eventos bloquean horarios en la agenda. A la vez, puede suscribirse a sus turnos de Peloco desde Google Calendar ("Otros calendarios" → "Desde URL") con el link que muestra la página, o agregar cada turno con un clic. No requiere credenciales de Google Cloud. También se puede configurar por variable: `GCAL_ICS_LUCIA`, `GCAL_ICS_MARTIN`, `GCAL_ICS_SOFI`.
+
 ## Correr local
 
 ```bash

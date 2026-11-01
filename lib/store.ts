@@ -65,6 +65,28 @@ async function escribir(turnos: Turno[]) {
   await fs.writeFile(ARCHIVO, JSON.stringify(turnos, null, 2));
 }
 
+// Guardado genérico de un valor JSON (lo usan las conexiones de calendario).
+export async function leerValor<T>(clave: string): Promise<T | null> {
+  if (REDIS_URL && REDIS_TOKEN) {
+    const v = await redis(["GET", clave]);
+    return v ? (JSON.parse(v) as T) : null;
+  }
+  try {
+    return JSON.parse(await fs.readFile(path.join(path.dirname(ARCHIVO), `${clave}.json`), "utf8")) as T;
+  } catch {
+    return null;
+  }
+}
+
+export async function guardarValor(clave: string, valor: unknown) {
+  if (REDIS_URL && REDIS_TOKEN) {
+    await redis(["SET", clave, JSON.stringify(valor)]);
+    return;
+  }
+  await fs.mkdir(path.dirname(ARCHIVO), { recursive: true });
+  await fs.writeFile(path.join(path.dirname(ARCHIVO), `${clave}.json`), JSON.stringify(valor, null, 2));
+}
+
 export async function listarTurnos(): Promise<Turno[]> {
   const t = await leerCrudo();
   if (t) return t;

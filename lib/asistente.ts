@@ -3,6 +3,7 @@ import { NEGOCIO, SERVICIOS, PROFESIONALES, FAQ, servicioPorId, profesionalPorId
 import { ahoraAR, disponibilidad, proximosDiasAbiertos } from "./agenda";
 import { listarTurnos, type Turno } from "./store";
 import { crearTurno } from "./reservas";
+import { bloqueosPara } from "./calendario";
 
 export type MensajeChat = { role: "user" | "assistant"; content: string };
 
@@ -37,8 +38,9 @@ PREGUNTAS FRECUENTES:
 ${FAQ.map((f) => `- ${f.p} ${f.r}`).join("\n")}
 
 CÓMO RESERVAR UN TURNO:
-1. Averiguá qué servicio quiere y qué día le viene bien (si dice "mañana", "el viernes", etc., calculá la fecha vos).
-2. Llamá a consultar_disponibilidad y ofrecé como máximo 4 horarios concretos, diciendo con quién.
+1. Averiguá qué servicio quiere. Cada servicio dura distinto, así que el servicio va primero.
+2. Apenas sepas el servicio, llamá a mostrar_calendario: el cliente ve un calendario con los días y horarios libres para ese servicio y elige ahí. Decile en una frase corta que elija día y hora en el calendario.
+   Si el cliente ya nombró un día concreto, podés además usar consultar_disponibilidad y ofrecerle hasta 4 horarios por texto.
 3. Cuando elija horario, pedí nombre y celular (WhatsApp) si todavía no los tenés.
 4. Llamá a reservar_turno. Recién cuando la herramienta confirme, decile que quedó reservado con el código del turno.
 Si el servicio lleva seña (color, balayage, keratina), avisale que le van a escribir por WhatsApp para coordinarla.
@@ -51,6 +53,21 @@ REGLAS:
 }
 
 const HERRAMIENTAS = [
+  {
+    type: "function",
+    function: {
+      name: "mostrar_calendario",
+      description: "Le muestra al cliente, dentro del chat, un calendario con días y horarios libres para el servicio (ya tiene en cuenta cuánto dura). Usala apenas sepas qué servicio quiere.",
+      parameters: {
+        type: "object",
+        properties: {
+          servicio_id: { type: "string", enum: SERVICIOS.map((s) => s.id) },
+          profesional_id: { type: "string", enum: PROFESIONALES.map((p) => p.id), description: "Opcional, solo si el cliente pidió a alguien" },
+        },
+        required: ["servicio_id"],
+      },
+    },
+  },
   {
     type: "function",
     function: {
@@ -89,10 +106,28 @@ const HERRAMIENTAS = [
   },
 ];
 
-async function ejecutarHerramienta(nombre: string, args: Record<string, string>): Promise<{ resultado: unknown; turno?: Turno }> {
+export type PedidoCalendario = { servicioId: string; profesionalId?: string };
+
+async function ejecutarHerramienta(
+  nombre: string,
+  args: Record<string, string>,
+): Promise<{ resultado: unknown; turno?: Turno; calendario?: PedidoCalendario }> {
+  if (nombre === "mostrar_calendario") {
+    const servicio = servicioPorId(args.servicio_id);
+    if (!servicio) return { resultado: { ok: false, error: "Servicio inexistente" } };
+    const pro = args.profesional_id && profesionalPorId(args.profesional_id) ? args.profesional_id : undefined;
+    return {
+      resultado: {
+        ok: true,
+        mensaje: `El cliente ya está viendo un calendario con los horarios libres para ${servicio.nombre} (${servicio.duracionMin} min). Cuando elija, te va a escribir el día, la hora y el profesional.`,
+      },
+      calendario: { servicioId: servicio.id, profesionalId: pro },
+    };
+  }
   if (nombre === "consultar_disponibilidad") {
     const turnos = await listarTurnos();
-    return { resultado: disponibilidad(turnos, args.fecha, args.servicio_id, args.profesional_id) };
+    const bloqueos = await bloqueosPara([args.fecha]);
+    return { resultado: disponibilidad(turnos, args.fecha, args.servicio_id, args.profesional_id, bloqueos) };
   }
   if (nombre === "reservar_turno") {
     const r = await crearTurno(
@@ -168,12 +203,13 @@ export async function responder(historial: MensajeChat[]) {
     ...historial.slice(-20).map((m) => ({ role: m.role, content: m.content.slice(0, 2000) })),
   ];
   let turnoReservado: Turno | undefined;
+  let calendario: PedidoCalendario | undefined;
 
   for (let i = 0; i < 6; i++) {
     const msg = await llamarModelo(mensajes);
     if (!msg) throw new Error("El modelo no devolvió respuesta.");
     if (!msg.tool_calls?.length) {
-      return { respuesta: limpiarRazonamiento(msg.content ?? ""), turno: turnoReservado };
+      return { respuesta: limpiarRazonamiento(msg.content ?? ""), turno: turnoReservado, calendario };
     }
     mensajes.push({ role: "assistant", content: msg.content ?? "", tool_calls: msg.tool_calls });
     for (const call of msg.tool_calls) {
@@ -181,10 +217,11 @@ export async function responder(historial: MensajeChat[]) {
       try {
         args = JSON.parse(call.function.arguments || "{}");
       } catch {}
-      const { resultado, turno } = await ejecutarHerramienta(call.function.name, args);
+      const { resultado, turno, calendario: cal } = await ejecutarHerramienta(call.function.name, args);
       if (turno) turnoReservado = turno;
+      if (cal) calendario = cal;
       mensajes.push({ role: "tool", tool_call_id: call.id, content: JSON.stringify(resultado) });
     }
   }
-  return { respuesta: "Perdón, me trabé un poco. ¿Me repetís qué necesitás?", turno: turnoReservado };
+  return { respuesta: "Perdón, me trabé un poco. ¿Me repetís qué necesitás?", turno: turnoReservado, calendario };
 }

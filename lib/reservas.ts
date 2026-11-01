@@ -2,6 +2,7 @@
 import { servicioPorId, type Canal } from "./negocio";
 import { validarReserva } from "./agenda";
 import { listarTurnos, agregarTurno, nuevoId, type Turno } from "./store";
+import { bloqueosPara } from "./calendario";
 
 export type DatosTurno = {
   nombre: string;
@@ -24,7 +25,8 @@ export async function crearTurno(datos: DatosTurno, canal: Canal): Promise<{ ok:
   if (!datos.nombre?.trim()) return { ok: false, error: "Falta el nombre." };
   if ((datos.telefono ?? "").replace(/\D/g, "").length < 8) return { ok: false, error: "Falta un celular válido." };
   const turnos = await listarTurnos();
-  const error = validarReserva(turnos, datos.fecha, datos.hora, datos.servicioId, datos.profesionalId);
+  const bloqueos = await bloqueosPara([datos.fecha], datos.profesionalId);
+  const error = validarReserva(turnos, datos.fecha, datos.hora, datos.servicioId, datos.profesionalId, bloqueos);
   if (error) return { ok: false, error };
   const servicio = servicioPorId(datos.servicioId)!;
   const turno: Turno = {

@@ -51,7 +51,11 @@ export const aMin = (h: string) => {
 };
 export const aHora = (m: number) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
 
-function ocupado(turnos: Turno[], profesionalId: string, fecha: string, inicio: number, dur: number) {
+// Horario bloqueado por fuera de la app (por ejemplo, un evento en el Google Calendar del profesional).
+export type Bloqueo = { profesionalId: string; fecha: string; inicio: number; fin: number; titulo?: string };
+
+function ocupado(turnos: Turno[], profesionalId: string, fecha: string, inicio: number, dur: number, bloqueos: Bloqueo[] = []) {
+  if (bloqueos.some((b) => b.profesionalId === profesionalId && b.fecha === fecha && b.inicio < inicio + dur && inicio < b.fin)) return true;
   return turnos.some(
     (t) =>
       t.estado !== "cancelado" &&
@@ -66,7 +70,7 @@ export type Disponibilidad =
   | { ok: true; fecha: string; dia: string; servicio: string; duracionMin: number; opciones: { profesionalId: string; profesional: string; horarios: string[] }[] }
   | { ok: false; error: string };
 
-export function disponibilidad(turnos: Turno[], fecha: string, servicioId: string, profesionalId?: string): Disponibilidad {
+export function disponibilidad(turnos: Turno[], fecha: string, servicioId: string, profesionalId?: string, bloqueos: Bloqueo[] = []): Disponibilidad {
   const servicio = servicioPorId(servicioId);
   if (!servicio) return { ok: false, error: `No existe el servicio "${servicioId}".` };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return { ok: false, error: "La fecha tiene que tener formato YYYY-MM-DD." };
@@ -84,7 +88,7 @@ export function disponibilidad(turnos: Turno[], fecha: string, servicioId: strin
   const opciones = pros.map((p) => {
     const horarios: string[] = [];
     for (let m = desde; m <= hasta; m += PASO_MIN) {
-      if (!ocupado(turnos, p.id, fecha, m, servicio.duracionMin)) horarios.push(aHora(m));
+      if (!ocupado(turnos, p.id, fecha, m, servicio.duracionMin, bloqueos)) horarios.push(aHora(m));
     }
     return { profesionalId: p.id, profesional: p.nombre, horarios };
   });
@@ -92,9 +96,9 @@ export function disponibilidad(turnos: Turno[], fecha: string, servicioId: strin
   return { ok: true, fecha, dia: nombreDia(fecha), servicio: servicio.nombre, duracionMin: servicio.duracionMin, opciones };
 }
 
-export function validarReserva(turnos: Turno[], fecha: string, hora: string, servicioId: string, profesionalId: string): string | null {
+export function validarReserva(turnos: Turno[], fecha: string, hora: string, servicioId: string, profesionalId: string, bloqueos: Bloqueo[] = []): string | null {
   if (!profesionalPorId(profesionalId)) return `No existe el profesional "${profesionalId}".`;
-  const d = disponibilidad(turnos, fecha, servicioId, profesionalId);
+  const d = disponibilidad(turnos, fecha, servicioId, profesionalId, bloqueos);
   if (!d.ok) return d.error;
   if (!d.opciones[0]?.horarios.includes(hora)) return `El horario ${hora} no está libre con ese profesional. Consultá la disponibilidad de nuevo.`;
   return null;

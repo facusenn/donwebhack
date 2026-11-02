@@ -87,6 +87,37 @@ export async function guardarValor(clave: string, valor: unknown) {
   await fs.writeFile(path.join(path.dirname(ARCHIVO), `${clave}.json`), JSON.stringify(valor, null, 2));
 }
 
+// Candado para las operaciones "leer lista → modificar → guardar lista".
+// Sin esto, dos reservas al mismo tiempo pueden pisarse (una se pierde o se agenda dos veces el mismo horario).
+// En Redis usa SET NX con vencimiento (sirve entre instancias serverless); en archivo local, una cola en memoria.
+const colasLocales = new Map<string, Promise<unknown>>();
+
+export async function conCandado<T>(nombre: string, fn: () => Promise<T>): Promise<T> {
+  if (REDIS_URL && REDIS_TOKEN) {
+    const clave = `candado-${nombre}`;
+    const dueño = Math.random().toString(36).slice(2);
+    const limite = Date.now() + 8000;
+    while (!(await redis(["SET", clave, dueño, "NX", "PX", 10000]))) {
+      if (Date.now() > limite) throw new Error("La agenda está ocupada, probá de nuevo en un momento.");
+      await new Promise((r) => setTimeout(r, 80 + Math.random() * 120));
+    }
+    try {
+      return await fn();
+    } finally {
+      // Solo lo libera quien lo tomó (si venció y lo tomó otro, no lo borramos).
+      if ((await redis(["GET", clave])) === dueño) await redis(["DEL", clave]);
+    }
+  }
+  const previa = colasLocales.get(nombre) ?? Promise.resolve();
+  const actual = previa.catch(() => {}).then(fn);
+  colasLocales.set(nombre, actual);
+  try {
+    return await actual;
+  } finally {
+    if (colasLocales.get(nombre) === actual) colasLocales.delete(nombre);
+  }
+}
+
 export async function listarTurnos(): Promise<Turno[]> {
   const t = await leerCrudo();
   if (t) return t;
@@ -95,6 +126,7 @@ export async function listarTurnos(): Promise<Turno[]> {
   return demo;
 }
 
+// Llamar siempre dentro de conCandado("turnos", ...): ver crearTurno en reservas.ts.
 export async function agregarTurno(t: Turno) {
   const turnos = await listarTurnos();
   turnos.push(t);
@@ -102,12 +134,81 @@ export async function agregarTurno(t: Turno) {
 }
 
 export async function actualizarEstado(id: string, estado: EstadoTurno) {
-  const turnos = await listarTurnos();
-  const t = turnos.find((x) => x.id === id);
-  if (!t) return null;
-  t.estado = estado;
-  await escribir(turnos);
-  return t;
+  return conCandado("turnos", async () => {
+    const turnos = await listarTurnos();
+    const t = turnos.find((x) => x.id === id);
+    if (!t) return null;
+    t.estado = estado;
+    await escribir(turnos);
+    return t;
+  });
+}
+
+// ---- Pedidos pendientes ----
+// Consultas que entraron por teléfono o mostrador y no se pudieron agendar en el momento
+// (faltó el horario, el celular, o el horario pedido estaba ocupado). Se terminan por WhatsApp.
+export type EstadoPedido = "pendiente" | "agendado" | "descartado";
+
+export type Pedido = {
+  id: string;
+  canal: Canal;
+  nombre: string;
+  telefono: string;
+  servicioId: string;
+  profesionalId: string;
+  fecha: string;
+  hora: string;
+  notas?: string;
+  transcripcion: string;
+  faltantes: string[];
+  motivo: string; // por qué no se agendó directo
+  mensajeWhatsApp: string; // primer mensaje para seguir por WhatsApp
+  estado: EstadoPedido;
+  turnoId?: string;
+  whatsappEnviado?: boolean;
+  creadoEn: string;
+};
+
+const PEDIDOS_KEY = "pedidos";
+
+export async function listarPedidos(): Promise<Pedido[]> {
+  return (await leerValor<Pedido[]>(PEDIDOS_KEY)) ?? [];
+}
+
+export async function agregarPedido(p: Pedido) {
+  await conCandado(PEDIDOS_KEY, async () => {
+    const lista = await listarPedidos();
+    lista.push(p);
+    // Guardamos los últimos 200 para que la clave no crezca sin límite.
+    await guardarValor(PEDIDOS_KEY, lista.slice(-200));
+  });
+}
+
+export async function actualizarPedido(id: string, cambios: Partial<Pick<Pedido, "estado" | "telefono" | "faltantes" | "turnoId" | "whatsappEnviado" | "mensajeWhatsApp">>) {
+  return conCandado(PEDIDOS_KEY, async () => {
+    const lista = await listarPedidos();
+    const p = lista.find((x) => x.id === id);
+    if (!p) return null;
+    Object.assign(p, cambios);
+    await guardarValor(PEDIDOS_KEY, lista);
+    return p;
+  });
+}
+
+export async function pedidoPendienteDe(telefono: string): Promise<Pedido | undefined> {
+  if (!telefono) return undefined;
+  const lista = await listarPedidos();
+  return lista.filter((p) => p.estado === "pendiente" && p.telefono === telefono).pop();
+}
+
+// Cuando un cliente con pedido pendiente termina reservando (por WhatsApp o por donde sea), el pedido se cierra solo.
+export async function cerrarPedidosDe(telefono: string, turnoId: string) {
+  if (!telefono || !(await pedidoPendienteDe(telefono))) return;
+  await conCandado(PEDIDOS_KEY, async () => {
+    const lista = await listarPedidos();
+    for (const p of lista) if (p.estado === "pendiente" && p.telefono === telefono) Object.assign(p, { estado: "agendado", turnoId });
+    await guardarValor(PEDIDOS_KEY, lista);
+  });
 }
 
 export function nuevoId() {

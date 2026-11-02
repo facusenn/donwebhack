@@ -289,3 +289,27 @@ details.card[open] summary::after { transform: rotate(45deg); }
 .portada-txt h1 { letter-spacing: -.02em; text-shadow: 0 4px 24px rgba(0,0,0,.35); }
 .pie { border-top: 1px solid var(--line); margin-top: 40px; }
 .pestanas a:not(.pestanas-logo) { transition: color .15s; }
+
+/* Escuchar consulta + pedidos pendientes */
+.panel-altas { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; align-items: flex-start; }
+.panel-altas > .card { align-self: stretch; }
+.escuchar textarea { width: 100%; border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 10px; padding: 9px 11px; font: inherit; margin: 8px 0; }
+.escuchar-acciones { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.btn.grabando { background: var(--bad); color: #fff; border: 1px solid var(--bad); }
+.btn.deshabilitado { opacity: .5; pointer-events: none; }
+.vivo { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; max-height: 160px; overflow-y: auto; font-size: .92rem; }
+.vivo .punto { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--bad); margin-right: 8px; animation: latido 1.2s infinite; }
+@keyframes latido { 50% { opacity: .25; } }
+.resultado { border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.resultado p { margin: 0; }
+.resultado.ok { background: color-mix(in srgb, var(--ok) 12%, transparent); border: 1px solid color-mix(in srgb, var(--ok) 40%, transparent); }
+.resultado.pendiente { background: color-mix(in srgb, var(--warn) 12%, transparent); border: 1px solid color-mix(in srgb, var(--warn) 40%, transparent); }
+.resultado .sugerida { align-self: stretch; }
+.transcripcion { white-space: pre-wrap; font-size: .88rem; color: var(--ink-2); margin: 6px 0 0; }
+.pedidos { margin-bottom: 24px; }
+.pedidos h2 { font-size: 1.2rem; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+.badge.pendiente { background: color-mix(in srgb, var(--warn) 18%, transparent); color: var(--warn); }
+.badge.agendado { background: color-mix(in srgb, var(--ok) 18%, transparent); color: var(--ok); }
+.turno.pedido.agendado { opacity: .7; }
+.pedido-cel { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+.pedido-cel input { border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 8px; padding: 6px 9px; font: inherit; }

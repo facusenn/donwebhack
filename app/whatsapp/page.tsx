@@ -16,6 +16,20 @@ export default function WhatsAppDemo() {
   const [escribiendo, setEscribiendo] = useState(false);
   const fin = useRef<HTMLDivElement>(null);
 
+  // Desde el panel se puede abrir con ?tel=...&nombre=...&abre=... para seguir un pedido de teléfono / mostrador:
+  // el asistente ya le escribió primero al cliente y la charla del bot arranca desde ese mensaje.
+  useEffect(() => {
+    try {
+      const q = new URLSearchParams(location.search);
+      const tel = q.get("tel");
+      if (tel) setTelefono(tel.startsWith("+") ? tel : `+${tel}`);
+      const n = q.get("nombre");
+      if (n) setNombre(n);
+      const abre = q.get("abre");
+      if (abre) setMsgs([{ de: "bot", texto: abre, hora: ahora() }]);
+    } catch {}
+  }, []);
+
   useEffect(() => {
     fin.current?.scrollIntoView({ behavior: "smooth" });
   }, [msgs, escribiendo]);

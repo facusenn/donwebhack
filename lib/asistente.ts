@@ -109,7 +109,8 @@ const HERRAMIENTAS = [
 
 export type PedidoCalendario = { servicioId: string; profesionalId?: string };
 
-export type OpcionesCanal = { canal: "web" | "whatsapp"; telefono?: string };
+// contextoPedido: resumen de un pedido pendiente que el cliente hizo por teléfono o en el mostrador.
+export type OpcionesCanal = { canal: "web" | "whatsapp"; telefono?: string; contextoPedido?: string };
 
 async function ejecutarHerramienta(
   nombre: string,
@@ -209,14 +210,19 @@ export function limpiarRazonamiento(texto: string) {
   return texto.replace(/<think>[\s\S]*?<\/think>/gi, "").replace(/^[\s\S]*<\/think>/i, "").trim();
 }
 
-function extraWhatsApp(telefono?: string) {
+function extraWhatsApp(telefono?: string, contextoPedido?: string) {
+  const pedido = contextoPedido
+    ? `
+- ESTE CLIENTE TIENE UN PEDIDO PENDIENTE que hizo ${contextoPedido}
+  Ya le escribimos para terminarlo: seguí desde ahí, no le vuelvas a preguntar lo que ya dijo, y reservá apenas tengas lo que falta.`
+    : "";
   return `
 
 ESTÁS RESPONDIENDO POR WHATSAPP:
 - No podés mostrar el calendario: ofrecé horarios por texto usando consultar_disponibilidad.
 - Para pasar horarios usá el campo "resumen" tal cual viene, por profesional. Ejemplo: "Con Lucía tengo 13, 14, 15, 17.30 disponibles. ¿Qué horario te queda bien?". Separá los horarios solo con comas, nunca uses rangos tipo "de 10 a 15".
 - El celular del cliente es ${telefono ?? "el de este chat"}: usalo en reservar_turno y no se lo pidas.
-- Escribí texto plano, sin markdown ni asteriscos dobles. Mensajes cortos.`;
+- Escribí texto plano, sin markdown ni asteriscos dobles. Mensajes cortos.${pedido}`;
 }
 
 // Detecta el servicio que el cliente pidió en sus mensajes (respaldo si el modelo no llama a la herramienta)
@@ -242,7 +248,7 @@ const ANUNCIA_ESPERA = /un momento|voy a (chequear|consultar|revisar|buscar|fija
 export async function responder(historial: MensajeChat[], op: OpcionesCanal = { canal: "web" }) {
   const herramientas = op.canal === "whatsapp" ? HERRAMIENTAS.filter((h) => h.function.name !== "mostrar_calendario") : HERRAMIENTAS;
   const mensajes: MensajeAPI[] = [
-    { role: "system", content: promptSistema() + (op.canal === "whatsapp" ? extraWhatsApp(op.telefono) : "") },
+    { role: "system", content: promptSistema() + (op.canal === "whatsapp" ? extraWhatsApp(op.telefono, op.contextoPedido) : "") },
     ...historial.slice(-20).map((m) => ({ role: m.role, content: m.content.slice(0, 2000) })),
   ];
   let turnoReservado: Turno | undefined;

@@ -2,8 +2,8 @@
 // Configuración: en Twilio → Messaging → Try it out → WhatsApp sandbox → "When a message comes in"
 // = https://TU-DOMINIO/api/whatsapp (método POST).
 import { responder, type MensajeChat } from "@/lib/asistente";
-import { leerValor, guardarValor } from "@/lib/store";
-import { NEGOCIO } from "@/lib/negocio";
+import { leerValor, guardarValor, pedidoPendienteDe } from "@/lib/store";
+import { NEGOCIO, CANALES, servicioPorId, profesionalPorId } from "@/lib/negocio";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
@@ -39,7 +39,22 @@ export async function POST(req: Request) {
   historial.push({ role: "user", content: contenido });
 
   try {
-    const { respuesta } = await responder(historial, { canal: "whatsapp", telefono });
+    const pedido = await pedidoPendienteDe(telefono).catch(() => undefined);
+    const contextoPedido = pedido
+      ? [
+          `por ${CANALES[pedido.canal].toLowerCase()}:`,
+          pedido.nombre && `nombre ${pedido.nombre};`,
+          pedido.servicioId && `servicio ${servicioPorId(pedido.servicioId)?.nombre} (id ${pedido.servicioId});`,
+          pedido.profesionalId && `quiere con ${profesionalPorId(pedido.profesionalId)?.nombre} (id ${pedido.profesionalId});`,
+          pedido.fecha && `día pedido ${pedido.fecha};`,
+          pedido.hora && `hora pedida ${pedido.hora};`,
+          pedido.notas && `notas: ${pedido.notas};`,
+          `motivo por el que no se agendó: ${pedido.motivo}`,
+        ]
+          .filter(Boolean)
+          .join(" ")
+      : undefined;
+    const { respuesta } = await responder(historial, { canal: "whatsapp", telefono, contextoPedido });
     historial.push({ role: "assistant", content: respuesta });
     await guardarValor(clave, { mensajes: historial.slice(-30), actualizado: Date.now() });
     return twiml(respuesta || "¿Me repetís, por favor?");

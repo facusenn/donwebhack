@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { NEGOCIO, CANALES, servicioPorId, profesionalPorId } from "@/lib/negocio";
 import NuevoTurno from "./NuevoTurno";
+import Escuchar from "./Escuchar";
+import Pedidos from "./Pedidos";
 import type { Turno, EstadoTurno } from "@/lib/store";
 
 const DIAS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
@@ -23,6 +25,7 @@ export default function Panel() {
   const [turnos, setTurnos] = useState<Turno[] | null>(null);
   const [error, setError] = useState("");
   const [filtro, setFiltro] = useState<string>("todos");
+  const [refrescoPedidos, setRefrescoPedidos] = useState(0);
 
   const cargar = useCallback(async (c: string) => {
     const res = await fetch("/api/turnos", { headers: { "x-clave": c }, cache: "no-store" });
@@ -121,7 +124,14 @@ export default function Panel() {
         </select>
       </div>
 
-      <div style={{ marginBottom: 20 }}>
+      <div className="panel-altas">
+        <Escuchar
+          clave={clave}
+          onListo={() => {
+            cargar(clave);
+            setRefrescoPedidos((n) => n + 1);
+          }}
+        />
         <NuevoTurno clave={clave} onCreado={() => cargar(clave)} />
       </div>
 
@@ -143,6 +153,8 @@ export default function Panel() {
           </div>
         ))}
       </div>
+
+      <Pedidos clave={clave} refresco={refrescoPedidos} />
 
       {porDia.length === 0 && <p className="meta">No hay turnos todavía.</p>}
       {porDia.map(([fecha, lista]) => (

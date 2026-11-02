@@ -22,6 +22,7 @@ Para probar WhatsApp: entrá al simulador, escribí como cliente (por ejemplo *"
 - **Asistente IA** (chat en la web): responde precios, horarios y políticas, consulta horarios libres de verdad y deja el turno confirmado con código.
 - **Panel del equipo** (`/panel`):
   - Bandeja única con turnos de todos los canales, agrupados por día y con etiqueta de canal.
+  - **Escuchar consulta:** un botón graba la charla con el cliente en el mostrador o por teléfono (en altavoz), la transcribe (`gpt-4o-transcribe`, o el reconocimiento de voz del navegador como respaldo) y la IA saca servicio, profesional, día, hora, nombre y celular. Si dijo día y hora y hay lugar, **agenda el turno**. Si falta algo o el horario está ocupado, queda como **pedido pendiente** y el asistente de WhatsApp le escribe al cliente para terminarlo (con horarios alternativos si hace falta). Cuando el cliente reserva por WhatsApp, el pedido se cierra solo.
   - **Cargar turno de WhatsApp o teléfono:** pegás el chat (o anotás la llamada), la IA completa el formulario, marca lo que falta y sugiere la respuesta para mandar por WhatsApp.
   - Muestra horarios libres y no deja superponer turnos.
   - Botón de WhatsApp con recordatorio armado, y estados atendido / cancelado.
@@ -70,6 +71,9 @@ Los turnos se guardan en el volumen `turnos`, así que sobreviven a reinicios si
 | `NVIDIA_API_KEY` | Alternativa: key `nvapi-...` de build.nvidia.com. Usa Nemotron por defecto. |
 | `OPENROUTER_MODEL` | Opcional. Modelo con tool calling. Default `openai/gpt-4o-mini` (OpenRouter) o `nvidia/llama-3.3-nemotron-super-49b-v1.5` (NVIDIA). |
 | `PANEL_PASSWORD` | Opcional. Si está, el panel pide clave (o `/panel?clave=...`). |
+| `OPENAI_API_KEY` | Opcional si la key principal ya es de OpenAI (`sk-...`). Se usa para transcribir el audio de "Escuchar consulta". Sin key de OpenAI, la transcripción la hace el navegador (Chrome). |
+| `TRANSCRIBE_MODEL` | Opcional. Default `gpt-4o-transcribe` (con `whisper-1` de respaldo). |
+| `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` / `TWILIO_WHATSAPP_FROM` | Opcional. Si están, los pedidos pendientes se le mandan al cliente por WhatsApp automáticamente. Si no, el panel abre el simulador `/whatsapp` con el mensaje listo. |
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | Opcional. Guarda turnos en Redis. Sin esto se guardan en `data/turnos.json`. |
 
 En un hosting serverless (Vercel) conviene configurar Upstash para que los turnos persistan. En un servidor Node propio (por ejemplo un VPS de DonWeb con `npm run build && npm start`) alcanza con el archivo local.
